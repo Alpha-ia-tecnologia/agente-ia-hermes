@@ -1,0 +1,50 @@
+# aao-hermes-bridge — deploy no EasyPanel (projeto compose)
+services:
+  bridge:
+    build:
+      context: .
+      args:
+        # fork com os patches do AAO (NÃO o upstream da Nous)
+        HERMES_REPO_URL: ${HERMES_REPO_URL:-https://github.com/alphatechma/atch-aao-hermes-agent.git}
+        HERMES_REF: ${HERMES_REF:-main}
+        # necessário se o repo do fork for privado (PAT read-only)
+        HERMES_GIT_TOKEN: ${HERMES_GIT_TOKEN:-}
+    restart: unless-stopped
+    ports:
+      - "8100"
+    environment:
+      # Aceita qualquer um dos dois nomes no painel. Prefira BRIDGE_API_KEY —
+      # é o MESMO nome usado no serviço da api, então os dois painéis ficam
+      # iguais e não há como divergir.
+      AAO_BRIDGE_BRIDGE_API_KEY: ${BRIDGE_API_KEY:-${AAO_BRIDGE_BRIDGE_API_KEY:-}}
+      # bwrap dentro de container costuma exigir privilégios; o bridge tem
+      # fallback automático, mas deixe explícito se o host não suportar:
+      AAO_BRIDGE_HARD_SANDBOX: ${AAO_BRIDGE_HARD_SANDBOX:-0}
+      # Capacidade (VPS 6 vCPU / 11,7 GB, dividida com api, banco, scribe…).
+      # Medido: ~200 MB por processo Hermes em turno + ~6 MB por sessão viva.
+      AAO_BRIDGE_MAX_INSTANCES: ${AAO_BRIDGE_MAX_INSTANCES:-6}
+      AAO_BRIDGE_MAX_TURNS_PER_INSTANCE: ${AAO_BRIDGE_MAX_TURNS_PER_INSTANCE:-30}
+      AAO_BRIDGE_MAX_ACTIVE_TURNS: ${AAO_BRIDGE_MAX_ACTIVE_TURNS:-40}
+      AAO_BRIDGE_MAX_LIVE_SESSIONS: ${AAO_BRIDGE_MAX_LIVE_SESSIONS:-40}
+      AAO_BRIDGE_IDLE_TIMEOUT_SECONDS: ${AAO_BRIDGE_IDLE_TIMEOUT_SECONDS:-300}
+    # Teto de RAM do bridge + processos Hermes: se estourar, o kernel mata um
+    # Hermes AQUI dentro (o bridge recria no próximo chat) em vez de derrubar
+    # o Postgres ou a api.
+    mem_limit: ${BRIDGE_MEM_LIMIT:-3g}
+    volumes:
+      # MESMO bind do compose da api: workspaces/credenciais dos tenants
+      - /var/lib/aao/bridge-data:/shared/bridge-data
+    # para tentar o sandbox bwrap dentro do container, descomente:
+    # security_opt:
+    #   - seccomp:unconfined
+    # cap_add:
+    #   - SYS_ADMIN
+    networks:
+      default: {}
+      easypanel:
+        aliases:
+          - aao-bridge
+
+networks:
+  easypanel:
+    external: true
