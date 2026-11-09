@@ -5,7 +5,7 @@ services:
       context: .
       args:
         # fork com os patches do AAO (NÃO o upstream da Nous)
-        HERMES_REPO_URL: ${HERMES_REPO_URL:-https://github.com/alphatechma/atch-aao-hermes-agent.git}
+        HERMES_REPO_URL: ${HERMES_REPO_URL:-https://github.com/Alpha-ia-tecnologia/agente-hermes-motor.git}
         HERMES_REF: ${HERMES_REF:-main}
         # necessário se o repo do fork for privado (PAT read-only)
         HERMES_GIT_TOKEN: ${HERMES_GIT_TOKEN:-}

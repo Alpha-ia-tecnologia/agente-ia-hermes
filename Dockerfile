@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
 # fork do hermes-agent (contém os patches do AAO — não usar o upstream puro)
-ARG HERMES_REPO_URL=https://github.com/alphatechma/atch-aao-hermes-agent.git
+ARG HERMES_REPO_URL=https://github.com/Alpha-ia-tecnologia/agente-hermes-motor.git
 ARG HERMES_REF=main
 # repo privado: passe HERMES_GIT_TOKEN (PAT com read-only de conteúdo)
 ARG HERMES_GIT_TOKEN=""
